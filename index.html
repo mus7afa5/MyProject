@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sonic Filter</title>
+    <link rel="stylesheet" href="index.css">
+</head>
+<body>
+    <header> 
+        <h1>Sonic Filter</h1>
+    </header>
+    <section style="padding-left:16px;" id="product-grid" class="grid-container"></section>
+
+    <div class="container">
+        <div class="text-input-container">
+            <textarea id="textarea" placeholder="Type here..."></textarea>
+            <div class="analyze-div">
+               <button class="analyze-button" onclick="analyze()">Analyze</button>
+            </div>
+        </div>
+        <div class="buttons-container">
+            <input type="file" id="audioInput" accept="audio/*">
+            <button id="uploadButton" onclick="uploadAndAnalyze()">Upload</button>            
+        </div>
+    </div>
+    <div class="container2"> 
+        <button id="recordButton" onclick="startRecording()">Start</button>
+        <button id="stopButton" onclick="stopRecording()" disabled >Stop</button>
+    </div>
+</body>
+<footer>
+    <p>
+        <!--nothing-->
+    </p>
+</footer>
+<script src="index.js"></script>
+<script>
+    function analyze() {
+        let text = document.getElementById('textarea').value;
+        fetch('http://127.0.0.1:5000/analyze-text', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text })
+        })
+        .then(response => response.json())
+        .then(result => alert(`The message is likely from a ${result.result}`))
+        .catch(error => console.error('Error:', error));
+    }
+
+    async function uploadAndAnalyze() {
+    const audioInput = document.getElementById('audioInput');
+    if (audioInput.files.length === 0) {
+        alert('Please select an audio file.');
+        return;
+    }
+    const formData = new FormData();
+    formData.append('audio', audioInput.files[0]);
+    try {
+        const response = await fetch('http://127.0.0.1:5000/analyze-audio', {
+            method: 'POST',
+            body: formData
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        else{
+        const data = await response.json();
+       // alert(`The audio is likely from a ${data.result}`);
+        }
+
+    } catch (error) {
+        console.error('Error:', error.message);
+       // alert('There was an error processing your request: ' + error.message);
+
+    }
+}
+</script>
+</html>
